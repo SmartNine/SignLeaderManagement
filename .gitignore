@@ -9,7 +9,9 @@ lerna-debug.log*
 
 # Node dependencies
 /signleader-admin/node_modules
+/signleader-admin/package-lock.json
 /signleader-backend/node_modules
+/signleader-backend/package-lock.json
 
 # Production build output
 /signleader-admin/dist
