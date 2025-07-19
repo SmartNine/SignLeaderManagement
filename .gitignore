@@ -1,0 +1,44 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Node dependencies
+/signleader-admin/node_modules
+/signleader-backend/node_modules
+
+# Production build output
+/signleader-admin/dist
+/signleader-admin/dist-ssr
+/signleader-backend/dist
+/signleader-backend/dist-ssr
+
+# Lockfiles (可选，看你是否要统一用 lock)
+signleader-admin/yarn.lock
+signleader-backend/yarn.lock
+
+# Local env files
+*.local
+.env.local
+.env.*.local
+.env
+
+# Cache
+.cache/
+
+# IDEs & editors
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# VS / Windows junk
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
