@@ -5,6 +5,9 @@ const { sequelize } = require('./models');
 
 const uploadRoutes = require('./routes/uploadRoutes');
 const queryRoutes = require('./routes/queryRoutes');
+const zipUploadRoutes = require('./routes/zipUploadRoutes');
+const editableNodeRoutes = require('./routes/editableNodeRoutes');
+const templateRoutes = require('./routes/templateRoutes');
 
 const app = express();
 app.use(cors());
@@ -12,6 +15,9 @@ app.use(express.json());
 
 app.use('/upload', uploadRoutes);
 app.use('/query', queryRoutes);
+app.use('/zip', zipUploadRoutes);
+app.use('/nodes', editableNodeRoutes);
+app.use('/templates', templateRoutes);
 
 sequelize.sync().then(() => {
   console.log('✅ 数据库连接成功，模型同步完成');

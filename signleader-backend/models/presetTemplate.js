@@ -1,25 +1,40 @@
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-  return sequelize.define(
+  const PresetTemplate = sequelize.define(
     "PresetTemplate",
     {
       sku: {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      name: DataTypes.STRING,
-      oss_json_url: {
-        type: DataTypes.TEXT,
+      name: {
+        type: DataTypes.STRING,
         allowNull: false,
       },
-      preview_url: DataTypes.TEXT,
-      tags: DataTypes.STRING,
-      created_by: DataTypes.STRING,
+      json_url: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      preview_url: {
+        type: DataTypes.STRING,
+      },
+      color_scheme: {
+        type: DataTypes.STRING,
+      },
+      tags: {
+        type: DataTypes.STRING,
+      },
+      created_by: {
+        type: DataTypes.STRING,
+      },
     },
     {
-      tableName: "preset_templates",
+      tableName: "preset_template",
       underscored: true,
+      timestamps: true,
     }
   );
+
+  return PresetTemplate;
 };

@@ -10,10 +10,12 @@ const sequelize = new Sequelize(config.database, config.username, config.passwor
 const ProductAsset = require('./productAsset')(sequelize);
 const PresetTemplate = require('./presetTemplate')(sequelize);
 const GlobalAsset = require('./globalAsset')(sequelize);
+const EditableNode = require('./editableNode')(sequelize);
 
 module.exports = {
   sequelize,
   ProductAsset,
   PresetTemplate,
-  GlobalAsset
+  GlobalAsset,
+  EditableNode
 };
