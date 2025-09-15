@@ -68,6 +68,14 @@ router.post("/asset", upload, async (req, res) => {
     const { sku, type, name } = req.body;
     const { file, preview } = req.files;
 
+    let editableNodes = [];
+
+    // 🔧 修复：如果是3D模型，先提取可编辑节点（在文件被删除之前）
+    if (type === "3d_model") {
+      const glbPath = file[0].path;
+      editableNodes = await extractEditableNodes(glbPath);
+    }
+
     const { url, preview_url } = await uploadAndSave({
       file: file[0],
       preview: preview ? preview[0] : null,
@@ -83,14 +91,8 @@ router.post("/asset", upload, async (req, res) => {
       preview_url,
     });
 
-    let editableNodes = [];
-
-    // ✅ 如果是 3D 模型，解析可编辑节点
-    if (type === "3d_model") {
-      const glbPath = file[0].path;
-      editableNodes = await extractEditableNodes(glbPath);
-
-      // 可选：存入 editable_nodes 表
+    // 如果是3D模型，将提取的节点保存到数据库
+    if (type === "3d_model" && editableNodes.length > 0) {
       for (const nodeName of editableNodes) {
         await EditableNode.create({
           asset_id: asset.id,
