@@ -4,7 +4,8 @@ const { EditableNode } = require("../models");
 
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
-const uploadOSS = require("../services/ossclient");
+const fs = require("fs").promises;
+const ossClient = require("../services/ossClient");
 
 // POST /nodes/:id/upload-uv
 router.post(
@@ -20,11 +21,24 @@ router.post(
 
       const { uv_file, preview } = req.files;
 
-      const { url: uv_template_url, preview_url } = await uploadOSS({
-        file: uv_file[0],
-        preview: preview ? preview[0] : null,
-        ossKeyPrefix: `uv-templates/${node.node_name}`,
-      });
+      // 上传UV模板文件
+      const uvKey = `uv-templates/${node.node_name}/${Date.now()}_${
+        uv_file[0].originalname
+      }`;
+      const uvResult = await ossClient.put(uvKey, uv_file[0].path);
+      await fs.unlink(uv_file[0].path);
+
+      let preview_url = null;
+      if (preview && preview[0]) {
+        const previewKey = `uv-templates/${
+          node.node_name
+        }/preview_${Date.now()}_${preview[0].originalname}`;
+        const previewResult = await ossClient.put(previewKey, preview[0].path);
+        await fs.unlink(preview[0].path);
+        preview_url = previewResult.url;
+      }
+
+      const uv_template_url = uvResult.url;
 
       node.uv_template_url = uv_template_url;
       if (preview_url) node.preview_url = preview_url;
@@ -33,7 +47,7 @@ router.post(
 
       res.json({
         success: true,
-        message: "UV 模板已上传",
+        message: "UV模板已上传",
         uv_template_url,
         preview_url,
       });
