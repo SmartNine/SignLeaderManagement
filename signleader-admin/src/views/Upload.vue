@@ -71,6 +71,7 @@
       <!-- 提交按钮 -->
       <el-form-item>
         <el-button type="primary" @click="submit">提交上传</el-button>
+        <el-button @click="clearForm">清空表单</el-button>
       </el-form-item>
     </el-form>
 
@@ -99,9 +100,37 @@ const errorMsg = ref("");
 
 function onFileChange(e) {
   file.value = e.target.files[0];
+
+  // 🆕 自动填充名称字段（去掉扩展名）
+  if (file.value && !form.value.name) {
+    const fileName = file.value.name;
+    const nameWithoutExt =
+      fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
+    form.value.name = nameWithoutExt;
+  }
 }
+
 function onPreviewChange(e) {
   preview.value = e.target.files[0];
+}
+
+function clearForm() {
+  form.value = {
+    sku: "",
+    type: "",
+    name: "",
+    tags: "",
+    created_by: "",
+    category: "",
+  };
+  file.value = null;
+  preview.value = null;
+  successMsg.value = "";
+  errorMsg.value = "";
+
+  // 清空文件选择器
+  const fileInputs = document.querySelectorAll('input[type="file"]');
+  fileInputs.forEach((input) => (input.value = ""));
 }
 
 async function submit() {
@@ -145,12 +174,32 @@ async function submit() {
     if (data.success) {
       successMsg.value = data.message || "上传成功";
       errorMsg.value = "";
+
+      // 🆕 清空表单字段
+      form.value.name = "";
+      form.value.tags = "";
+      file.value = null;
+      preview.value = null;
+
+      // 🆕 清空文件选择器
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      fileInputs.forEach((input) => (input.value = ""));
+
+      // 🆕 3秒后自动隐藏成功提示
+      setTimeout(() => {
+        successMsg.value = "";
+      }, 3000);
     } else {
       throw new Error(data.message);
     }
   } catch (err) {
     successMsg.value = "";
     errorMsg.value = err.message || "上传失败";
+
+    // 🆕 5秒后自动隐藏错误提示
+    // setTimeout(() => {
+    //   errorMsg.value = "";
+    // }, 5000);
   }
 }
 </script>

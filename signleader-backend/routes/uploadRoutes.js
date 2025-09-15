@@ -15,16 +15,46 @@ const {
 
 // 通用上传并保存到 OSS
 async function uploadAndSave({ file, preview, ossKeyPrefix }) {
-  const ossKey = `${ossKeyPrefix}/${Date.now()}_${file.originalname}`;
-  const result = await ossClient.put(ossKey, file.path);
+  const correctOriginalName = Buffer.from(file.originalname, "latin1").toString(
+    "utf8"
+  );
+  const encodedFileName = encodeURIComponent(correctOriginalName);
+  const ossKey = `${ossKeyPrefix}/${Date.now()}_${encodedFileName}`;
+
+  console.log("1. file.originalname:", file.originalname);
+  console.log("2. correctOriginalName:", correctOriginalName);
+  console.log("3. encodedFileName:", encodedFileName);
+  console.log("4. ossKey:", ossKey);
+
+  const options = {
+    headers: {
+      "Content-Disposition": `attachment; filename*=UTF-8''${encodedFileName}`,
+    },
+  };
+
+  const result = await ossClient.put(ossKey, file.path, options);
   await fs.unlink(file.path);
 
   let previewUrl = null;
   if (preview) {
-    const previewKey = `${ossKeyPrefix}/preview_${Date.now()}_${
-      preview.originalname
-    }`;
-    const r2 = await ossClient.put(previewKey, preview.path);
+    const correctPreviewName = Buffer.from(
+      preview.originalname,
+      "latin1"
+    ).toString("utf8");
+    const encodedPreviewName = encodeURIComponent(correctPreviewName);
+    const previewKey = `${ossKeyPrefix}/preview_${Date.now()}_${encodedPreviewName}`;
+
+    console.log("1. preview.originalname:", preview.originalname);
+    console.log("2. correctPreviewName:", correctPreviewName);
+    console.log("3. encodedPreviewName:", encodedPreviewName);
+    console.log("4. previewKey:", previewKey);
+
+    const previewOptions = {
+      headers: {
+        "Content-Disposition": `attachment; filename*=UTF-8''${encodedPreviewName}`,
+      },
+    };
+    const r2 = await ossClient.put(previewKey, preview.path, previewOptions);
     await fs.unlink(preview.path);
     previewUrl = r2.url;
   }
@@ -115,10 +145,24 @@ router.post("/global", upload, async (req, res) => {
     const { category, name, tags } = req.body;
     const { file } = req.files;
 
-    const ossKey = `global-assets/${category}/${Date.now()}_${
-      file[0].originalname
-    }`;
-    const result = await ossClient.put(ossKey, file[0].path);
+    const correctOriginalName = Buffer.from(
+      file[0].originalname,
+      "latin1"
+    ).toString("utf8");
+    const encodedFileName = encodeURIComponent(correctOriginalName);
+    const ossKey = `global-assets/${category}/${Date.now()}_${encodedFileName}`;
+    const options = {
+      headers: {
+        "Content-Disposition": `attachment; filename*=UTF-8''${encodedFileName}`,
+      },
+    };
+
+    console.log("1. file[0].originalname:", file[0].originalname);
+    console.log("2. correctOriginalName:", correctOriginalName);
+    console.log("3. encodedFileName:", encodedFileName);
+    console.log("4. ossKey:", ossKey);
+
+    const result = await ossClient.put(ossKey, file[0].path, options);
     await fs.unlink(file[0].path);
 
     await GlobalAsset.create({
