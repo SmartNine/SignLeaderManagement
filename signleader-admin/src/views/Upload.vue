@@ -176,6 +176,7 @@ async function submit() {
       errorMsg.value = "";
 
       // 🆕 清空表单字段
+      form.value.sku = "";
       form.value.name = "";
       form.value.tags = "";
       file.value = null;
