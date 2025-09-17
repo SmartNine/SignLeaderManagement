@@ -83,6 +83,10 @@
 <script setup>
 import { ref } from "vue";
 
+// 获取 API 基础地址
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:4200";
+
 const uploadType = ref("asset");
 const form = ref({
   sku: "",
@@ -166,7 +170,7 @@ async function submit() {
   }
 
   try {
-    const res = await fetch(`http://localhost:3000${endpoint}`, {
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
       body: formData,
     });

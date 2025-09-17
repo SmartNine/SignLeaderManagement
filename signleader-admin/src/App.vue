@@ -9,15 +9,15 @@
           <el-tab-pane label="上传 SKU 资源" name="asset">
             <Upload />
           </el-tab-pane>
-          <el-tab-pane label="上传 ZIP 模板" name="zip">
+          <!-- <el-tab-pane label="上传 ZIP 模板" name="zip">
             <TemplateZipUpload />
-          </el-tab-pane>
+          </el-tab-pane> -->
           <el-tab-pane label="上传 UV 模板" name="uv">
             <UploadUVTemplates />
           </el-tab-pane>
-          <el-tab-pane label="保存模板" name="save">
+          <!-- <el-tab-pane label="保存模板" name="save">
             <SaveTemplateForm />
-          </el-tab-pane>
+          </el-tab-pane> -->
         </el-tabs>
       </el-card>
       <hr />

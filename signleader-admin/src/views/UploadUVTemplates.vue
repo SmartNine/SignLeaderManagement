@@ -109,6 +109,10 @@
 import { ref, onMounted, nextTick } from "vue";
 import { ElMessage } from "element-plus";
 
+// 获取 API 基础地址
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:4200";
+
 const selectedAsset = ref(null);
 const assets3D = ref([]);
 const nodes = ref([]);
@@ -127,7 +131,7 @@ async function loadNodes() {
     return;
   }
   const res = await fetch(
-    `http://localhost:3000/nodes/by-asset/${selectedAsset.value.id}`
+    `${API_BASE_URL}/nodes/by-asset/${selectedAsset.value.id}`
   );
   nodes.value = await res.json();
 }
@@ -157,7 +161,7 @@ async function submit(nodeId) {
     formData.append("preview", previews.value[nodeId]);
   }
 
-  const res = await fetch(`http://localhost:3000/nodes/${nodeId}/upload-uv`, {
+  const res = await fetch(`${API_BASE_URL}/nodes/${nodeId}/upload-uv`, {
     method: "POST",
     body: formData,
   });
@@ -210,7 +214,7 @@ async function universalSubmit() {
       }
 
       const res = await fetch(
-        `http://localhost:3000/nodes/${node.id}/upload-uv`,
+        `${API_BASE_URL}/nodes/${node.id}/upload-uv`,
         {
           method: "POST",
           body: formData,
@@ -245,7 +249,7 @@ async function universalSubmit() {
 
 onMounted(async () => {
   try {
-    const res = await fetch("http://localhost:3000/query/assets");
+    const res = await fetch("${API_BASE_URL}/query/assets");
     const allAssets = await res.json();
     assets3D.value = allAssets.filter((asset) => asset.type === "3d_model");
   } catch (error) {

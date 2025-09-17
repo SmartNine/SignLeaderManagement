@@ -38,6 +38,10 @@
 <script setup>
 import { ref } from 'vue';
 
+// 获取 API 基础地址
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:4200";
+
 const jsonUrl = ref('');
 const resourcesList = ref([]);
 
@@ -55,7 +59,7 @@ async function customUpload({ file }) {
   formData.append('zipfile', file);
 
   try {
-    const res = await fetch('http://localhost:3000/zip/upload-template-zip', {
+    const res = await fetch('${API_BASE_URL}/zip/upload-template-zip', {
       method: 'POST',
       body: formData
     });

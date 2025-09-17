@@ -28,6 +28,9 @@ signleader-backend/yarn.lock
 .env.local
 .env.*.local
 .env
+.env.development
+.env.production
+!.env.example
 
 # Cache
 .cache/

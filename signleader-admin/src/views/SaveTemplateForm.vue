@@ -56,6 +56,10 @@
 <script setup>
 import { ref } from 'vue';
 
+// 获取 API 基础地址
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:4200";
+
 const form = ref({
   sku: '',
   name: '',
@@ -76,7 +80,7 @@ async function submit() {
   }
 
   try {
-    const res = await fetch('http://localhost:3000/templates/save-template', {
+    const res = await fetch('${API_BASE_URL}/templates/save-template', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form.value)

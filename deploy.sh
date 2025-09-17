@@ -1,35 +1,52 @@
 #!/bin/bash
 
-echo "🚀 开始部署 Signleader 系统"
+# =============================
+# 配置变量
+# =============================
+REMOTE=signleader
+REMOTE_USER=root
+REMOTE_HOST=47.251.171.137
 
-# 设置变量
-FRONTEND_DIR="./signleader-admin"
-BACKEND_DIR="./signleader-backend"
-FRONTEND_DIST_DIR="$FRONTEND_DIR/dist"
-DEPLOY_DIR="/var/www/signleader"         # 前端部署到这里
-API_PORT=3000
+REMOTE_CLIENT_PATH=/var/www/signleader-management/signleader-admin
+REMOTE_SERVER_PATH=/var/www/signleader-management/signleader-backend
+REMOTE_ECOSYSTEM_PATH=/var/www/signleader-management/ecosystem.config.js
 
-echo "🔧 安装后端依赖..."
-cd $BACKEND_DIR
-npm install
+LOCAL_CLIENT_BUILD_DIR=signleader-admin/dist
 
-echo "🔧 启动后端服务（pm2）..."
-if ! command -v pm2 &> /dev/null; then
-  npm install -g pm2
-fi
-pm2 delete signleader-api 2>/dev/null
-pm2 start index.js --name signleader-api
+echo "🔄 [0/6] 拉取最新 Git 代码..."
+git pull origin main || { echo "❌ Git 拉取失败"; exit 1; }
 
-echo "🌐 安装前端依赖..."
-cd ../$FRONTEND_DIR
-npm install
+echo "📦 [1/6] 安装本地依赖..."
+(cd signleader-admin && npm install) || { echo "❌ signleader-admin 依赖安装失败"; exit 1; }
+(cd signleader-backend && npm install) || { echo "❌ signleader-backend 依赖安装失败"; exit 1; }
 
-echo "📦 构建前端项目..."
-npm run build
+echo "🏗️  [2/6] 构建前端..."
+(cd signleader-admin && npm run build) || { echo "❌ 前端构建失败"; exit 1; }
 
-echo "📁 拷贝前端 dist 到部署目录..."
-sudo mkdir -p $DEPLOY_DIR
-sudo cp -r $FRONTEND_DIST_DIR/* $DEPLOY_DIR/
+echo "🗂️  [Pre] 确保远程路径存在..."
+ssh $REMOTE "mkdir -p $REMOTE_CLIENT_PATH && mkdir -p $REMOTE_SERVER_PATH"
 
-echo "✅ 部署完成，前端已部署到：$DEPLOY_DIR"
-echo "✅ 后端已运行在 pm2，端口：$API_PORT"
+echo "🧹 [3/6] 清理远程旧前端..."
+ssh $REMOTE "rm -rf $REMOTE_CLIENT_PATH/*"
+
+echo "🚚 [4/6] 上传前端构建..."
+rsync -avz --delete $LOCAL_CLIENT_BUILD_DIR/ $REMOTE:$REMOTE_CLIENT_PATH/
+
+echo "🚚 [5/6] 上传后端（排除 node_modules）..."
+rsync -avz --delete \
+  --exclude 'node_modules' \
+  --exclude '.git' \
+  ./signleader-backend/ $REMOTE:$REMOTE_SERVER_PATH/
+
+echo "🚚 [5.1/6] 上传 ecosystem.config.js..."
+rsync -avz ecosystem.config.js $REMOTE:$REMOTE_ECOSYSTEM_PATH
+
+echo "🚀 [6/6] 重启后端服务 (使用 ecosystem.config.js)..."
+ssh $REMOTE "
+  cd $REMOTE_SERVER_PATH &&
+  npm install &&
+  pm2 startOrRestart $REMOTE_ECOSYSTEM_PATH
+"
+
+echo "✅ 部署完成！访问前端 ➜ http://$REMOTE_HOST/"
+echo "🌐 或绑定域名：http://signleader-management.duckdns.org"

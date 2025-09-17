@@ -146,6 +146,10 @@
 <script setup>
 import { ref } from "vue";
 
+// 获取 API 基础地址
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:4200";
+
 const sku = ref("");
 const assets = ref([]);
 const templates = ref([]);
@@ -168,7 +172,7 @@ function getTemplateFileName(url) {
 async function loadUVTemplates() {
   try {
     const res = await fetch(
-      `http://localhost:3000/query/uv-templates?sku=${sku.value}`
+      `${API_BASE_URL}/query/uv-templates?sku=${sku.value}`
     );
 
     const data = await res.json();
@@ -193,14 +197,14 @@ async function loadUVTemplates() {
 }
 
 async function loadGlobals() {
-  const res = await fetch(`http://localhost:3000/query/globals`);
+  const res = await fetch(`${API_BASE_URL}/query/globals`);
   globals.value = await res.json();
   activeTab.value = "globals";
 }
 
 async function loadAssets() {
   const res = await fetch(
-    `http://localhost:3000/query/assets?sku=${sku.value}`
+    `${API_BASE_URL}/query/assets?sku=${sku.value}`
   );
   assets.value = await res.json();
   activeTab.value = "assets";
@@ -208,7 +212,7 @@ async function loadAssets() {
 
 async function loadTemplates() {
   const res = await fetch(
-    `http://localhost:3000/query/templates?sku=${sku.value}`
+    `${API_BASE_URL}/query/templates?sku=${sku.value}`
   );
   templates.value = await res.json();
   activeTab.value = "templates";
@@ -216,7 +220,7 @@ async function loadTemplates() {
 
 async function viewUVTemplates(assetId) {
   try {
-    const res = await fetch(`http://localhost:3000/nodes/by-asset/${assetId}`);
+    const res = await fetch(`${API_BASE_URL}/nodes/by-asset/${assetId}`);
     const nodes = await res.json();
 
     // 显示UV模板信息
