@@ -213,13 +213,10 @@ async function universalSubmit() {
         formData.append("preview", universalPreview.value);
       }
 
-      const res = await fetch(
-        `${API_BASE_URL}/nodes/${node.id}/upload-uv`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const res = await fetch(`${API_BASE_URL}/nodes/${node.id}/upload-uv`, {
+        method: "POST",
+        body: formData,
+      });
 
       const data = await res.json();
       if (data.success) {
@@ -249,7 +246,7 @@ async function universalSubmit() {
 
 onMounted(async () => {
   try {
-    const res = await fetch("${API_BASE_URL}/query/assets");
+    const res = await fetch(`${API_BASE_URL}/query/assets`);
     const allAssets = await res.json();
     assets3D.value = allAssets.filter((asset) => asset.type === "3d_model");
   } catch (error) {
