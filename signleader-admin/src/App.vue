@@ -15,6 +15,9 @@
           <el-tab-pane label="上传 UV 模板" name="uv">
             <UploadUVTemplates />
           </el-tab-pane>
+          <el-tab-pane label="配件配置" name="accessory">
+            <AccessoryConfig />
+          </el-tab-pane>
           <!-- <el-tab-pane label="保存模板" name="save">
             <SaveTemplateForm />
           </el-tab-pane> -->
@@ -29,6 +32,7 @@
 <script setup>
 import { ref } from "vue";
 import Upload from "./views/Upload.vue";
+import AccessoryConfig from "./views/AccessoryConfig.vue";
 import TemplateZipUpload from "./views/TemplateZipUpload.vue";
 import UploadUVTemplates from "./views/UploadUVTemplates.vue";
 import SaveTemplateForm from "./views/SaveTemplateForm.vue";

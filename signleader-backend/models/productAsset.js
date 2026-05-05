@@ -28,6 +28,11 @@ module.exports = (sequelize) =>
         type: DataTypes.TEXT,
         comment: "模型缩略图（可选）",
       },
+      accessory_groups: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        comment: "配件ID到GLB节点名映射，如 {led: ['nodeA', 'nodeB']}",
+      },
     },
     {
       tableName: "product_assets",

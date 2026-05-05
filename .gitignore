@@ -47,3 +47,8 @@ signleader-backend/yarn.lock
 *.njsproj
 *.sln
 *.sw?
+
+# env-configs symlinks
+docs
+CLAUDE.md
+nginx

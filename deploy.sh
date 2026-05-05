@@ -10,6 +10,7 @@ REMOTE_HOST=47.251.171.137
 REMOTE_CLIENT_PATH=/var/www/signleader-management/signleader-admin
 REMOTE_SERVER_PATH=/var/www/signleader-management/signleader-backend
 REMOTE_ECOSYSTEM_PATH=/var/www/signleader-management/ecosystem.config.js
+REMOTE_NGINX_CONF=/www/server/panel/vhost/nginx/signleader-management.conf
 
 LOCAL_CLIENT_BUILD_DIR=signleader-admin/dist
 
@@ -40,6 +41,10 @@ rsync -avz --delete \
 
 echo "🚚 [5.1/6] 上传 ecosystem.config.js..."
 rsync -avz ecosystem.config.js $REMOTE:$REMOTE_ECOSYSTEM_PATH
+
+echo "🔧 [5.2/6] 上传 nginx 配置并重载..."
+rsync -avzL nginx/signleader-management.conf $REMOTE:$REMOTE_NGINX_CONF
+ssh $REMOTE "/www/server/nginx/sbin/nginx -s reload"
 
 echo "🚀 [6/6] 重启后端服务 (使用 ecosystem.config.js)..."
 ssh $REMOTE "
