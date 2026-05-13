@@ -10,9 +10,8 @@
         <el-button type="primary" @click="loadAssets">查询资源</el-button>
         <el-button type="primary" @click="loadTemplates">查询模板</el-button>
         <el-button type="primary" @click="loadGlobals">查询公共资源</el-button>
-        <el-button type="primary" @click="loadUVTemplates"
-          >查询UV模板</el-button
-        >
+        <el-button type="primary" @click="loadUVTemplates">查询UV模板</el-button>
+        <el-button type="primary" @click="loadAccessories">查询配件</el-button>
       </el-form-item>
     </el-form>
 
@@ -139,12 +138,23 @@
           </el-table-column>
         </el-table>
       </el-tab-pane>
+      <el-tab-pane label="配件配置" name="accessories">
+        <div v-if="accessoryTableData.length === 0" style="color: #999; font-size: 13px; padding: 12px 0">暂无配件配置</div>
+        <el-table v-else :data="accessoryTableData" stripe style="width: 100%">
+          <el-table-column label="配件 ID" prop="id" width="180" />
+          <el-table-column label="绑定节点">
+            <template #default="{ row }">
+              <el-tag v-for="n in row.nodes" :key="n" size="small" style="margin-right: 4px">{{ n }}</el-tag>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
     </el-tabs>
   </el-card>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 // 获取 API 基础地址
 const API_BASE_URL =
@@ -157,7 +167,11 @@ const activeTab = ref("assets");
 
 const globals = ref([]);
 
-const uvTemplates = ref([]);
+const uvTemplates = ref([])
+const accessoryGroups = ref({})
+const accessoryTableData = computed(() =>
+  Object.entries(accessoryGroups.value).map(([id, nodes]) => ({ id, nodes }))
+);
 
 // 从URL中提取文件名
 function getTemplateFileName(url) {
@@ -216,6 +230,15 @@ async function loadTemplates() {
   );
   templates.value = await res.json();
   activeTab.value = "templates";
+}
+
+async function loadAccessories() {
+  if (!sku.value.trim()) return
+  const res = await fetch(`${API_BASE_URL}/accessories/product-asset?sku=${encodeURIComponent(sku.value.trim())}`)
+  if (!res.ok) return
+  const data = await res.json()
+  accessoryGroups.value = data.accessory_groups || {}
+  activeTab.value = 'accessories'
 }
 
 async function viewUVTemplates(assetId) {
