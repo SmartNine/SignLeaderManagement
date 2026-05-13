@@ -263,8 +263,12 @@ function clearHighlight() {
 }
 
 function toggleNodeSelect(name) {
-  // 已配置为配件的节点不可再选
-  if (isConfigured(name)) return
+  // 已配置的节点可以再选，但给出提示
+  if (isConfigured(name)) {
+    const group = getGroupNodes(name)
+    const groupId = Object.entries(accessoryGroups.value).find(([, nodes]) => nodes.includes(name))?.[0]
+    ElMessage.warning(`节点「${name}」已在配件「${groupId}」中，共享节点请确认是否为单双面设计`)
+  }
 
   const idx = selectedNodes.value.indexOf(name)
   if (idx === -1) {
@@ -272,7 +276,6 @@ function toggleNodeSelect(name) {
     applyEmissive(name, BLUE, 0.5)
   } else {
     selectedNodes.value.splice(idx, 1)
-    // 若当前正在 hover 中则保持橙色，否则恢复原始
     if (highlightedNodes.value.includes(name)) {
       applyEmissive(name, ORANGE, 0.6)
     } else {
@@ -427,10 +430,9 @@ onBeforeUnmount(disposeThree)
 }
 
 .node-item.configured {
-  background: #f5f5f5;
-  border-color: #dcdfe6;
-  color: #c0c4cc;
-  cursor: not-allowed;
+  border-color: #e6a23c;
+  color: #e6a23c;
+  background: #fdf6ec;
 }
 
 .node-item.configured:hover,
