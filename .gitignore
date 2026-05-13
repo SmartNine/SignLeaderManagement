@@ -29,6 +29,7 @@ signleader-backend/yarn.lock
 .env.*.local
 .env
 .env.development
+.env.test
 .env.production
 !.env.example
 

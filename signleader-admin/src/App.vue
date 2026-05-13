@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import Upload from "./views/Upload.vue";
 import AccessoryConfig from "./views/AccessoryConfig.vue";
 import TemplateZipUpload from "./views/TemplateZipUpload.vue";
@@ -38,7 +38,9 @@ import UploadUVTemplates from "./views/UploadUVTemplates.vue";
 import SaveTemplateForm from "./views/SaveTemplateForm.vue";
 import List from "./views/List.vue";
 
-const activeTab = ref("asset");
+const STORAGE_KEY = "slm_active_tab";
+const activeTab = ref(localStorage.getItem(STORAGE_KEY) || "asset");
+watch(activeTab, (val) => localStorage.setItem(STORAGE_KEY, val));
 </script>
 
 <style>

@@ -37,7 +37,11 @@ echo "🚚 [5/6] 上传后端（排除 node_modules）..."
 rsync -avz --delete \
   --exclude 'node_modules' \
   --exclude '.git' \
+  --exclude '.env' \
   ./signleader-backend/ $REMOTE:$REMOTE_SERVER_PATH/
+
+echo "🔧 [5.5/6] 上传环境配置（跟随 symlink）..."
+rsync -avzL ./signleader-backend/.env.test $REMOTE:$REMOTE_SERVER_PATH/.env
 
 echo "🚚 [5.1/6] 上传 ecosystem.config.js..."
 rsync -avz ecosystem.config.js $REMOTE:$REMOTE_ECOSYSTEM_PATH
@@ -54,4 +58,4 @@ ssh $REMOTE "
 "
 
 echo "✅ 部署完成！访问前端 ➜ http://$REMOTE_HOST/"
-echo "🌐 或绑定域名：http://signleader-management.duckdns.org"
+echo "🌐 或绑定域名：https://signleader-management.duckdns.org"

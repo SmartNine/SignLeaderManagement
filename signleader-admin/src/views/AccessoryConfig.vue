@@ -26,7 +26,11 @@
               v-for="name in nodeNames"
               :key="name"
               class="node-item"
-              :class="{ active: selectedNodes.includes(name), highlighted: highlightedNode === name }"
+              :class="{
+                active: selectedNodes.includes(name),
+                highlighted: highlightedNodes.includes(name),
+                configured: isConfigured(name),
+              }"
               @click="toggleNodeSelect(name)"
               @mouseenter="highlightNode(name)"
               @mouseleave="clearHighlight"
@@ -69,7 +73,7 @@
             </el-table-column>
             <el-table-column label="操作" width="80">
               <template #default="{ row }">
-                <el-button type="danger" size="small" text @click="removeAccessory(row.id)">删除</el-button>
+                <el-button type="warning" size="small" text @click="disbandAccessory(row.id)">打散</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -95,20 +99,54 @@ const loadingGlb = ref(false)
 
 const nodeNames = ref([])
 const selectedNodes = ref([])
-const highlightedNode = ref(null)
+const highlightedNodes = ref([])
 const newAccessoryId = ref('')
 const accessoryGroups = ref({})
 
 const canvasContainer = ref(null)
 
-// Three.js 相关
-let renderer, scene, camera, controls, animationId
-const meshMap = new Map()        // nodeName -> mesh
-const originalMaterials = new Map() // nodeName -> original material
+let renderer, scene, camera, controls, animationId, resizeObserver
+const meshMap = new Map()
+const originalMaterials = new Map()
+
+const BLUE = new THREE.Color(0x409eff)
+const ORANGE = new THREE.Color(0xff6600)
 
 const accessoryTableData = computed(() =>
   Object.entries(accessoryGroups.value).map(([id, nodes]) => ({ id, nodes }))
 )
+
+// 查找节点所属的配件组，返回该配件的所有节点，没有则返回 null
+function getGroupNodes(name) {
+  for (const nodes of Object.values(accessoryGroups.value)) {
+    if (nodes.includes(name)) return nodes
+  }
+  return null
+}
+
+function isConfigured(name) {
+  return !!getGroupNodes(name)
+}
+
+function applyEmissive(name, color, intensity = 0.6) {
+  const mesh = meshMap.get(name)
+  if (!mesh || !mesh.isMesh) return
+  const mat = mesh.material.clone()
+  mat.emissive = color
+  mat.emissiveIntensity = intensity
+  mesh.material = mat
+}
+
+function restoreMaterial(name) {
+  const mesh = meshMap.get(name)
+  if (!mesh || !mesh.isMesh) return
+  const orig = originalMaterials.get(name)
+  if (orig) mesh.material = orig
+}
+
+function applySelectedHighlight(name) {
+  applyEmissive(name, BLUE, 0.5)
+}
 
 async function loadAsset() {
   if (!sku.value.trim()) return
@@ -158,11 +196,21 @@ async function initThree(glbUrl) {
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
 
+  // 监听容器尺寸变化
+  resizeObserver = new ResizeObserver(() => {
+    if (!renderer) return
+    const w = container.clientWidth
+    const h = container.clientHeight
+    renderer.setSize(w, h)
+    camera.aspect = w / h
+    camera.updateProjectionMatrix()
+  })
+  resizeObserver.observe(container)
+
   const loader = new GLTFLoader()
   loader.load(glbUrl, (gltf) => {
     scene.add(gltf.scene)
 
-    // 收集所有命名节点
     gltf.scene.traverse((node) => {
       if ((node.isMesh || node.isGroup) && node.name) {
         meshMap.set(node.name, node)
@@ -173,7 +221,6 @@ async function initThree(glbUrl) {
     })
     nodeNames.value = [...meshMap.keys()].sort()
 
-    // 自动对准模型
     const box = new THREE.Box3().setFromObject(gltf.scene)
     const center = box.getCenter(new THREE.Vector3())
     const size = box.getSize(new THREE.Vector3())
@@ -197,45 +244,65 @@ async function initThree(glbUrl) {
 }
 
 function highlightNode(name) {
-  highlightedNode.value = name
-  const mesh = meshMap.get(name)
-  if (!mesh || !mesh.isMesh) return
-  const clone = mesh.material.clone()
-  clone.emissive = new THREE.Color(0xff6600)
-  clone.emissiveIntensity = 0.6
-  mesh.material = clone
+  // 找出需要高亮的节点：属于同一配件组则整组高亮，否则只高亮自身
+  const group = getGroupNodes(name)
+  const targets = group ? group : [name]
+  highlightedNodes.value = targets
+  targets.forEach(n => applyEmissive(n, ORANGE, 0.6))
 }
 
 function clearHighlight() {
-  if (!highlightedNode.value) return
-  const mesh = meshMap.get(highlightedNode.value)
-  if (mesh && mesh.isMesh) {
-    const orig = originalMaterials.get(highlightedNode.value)
-    if (orig) mesh.material = orig
-  }
-  highlightedNode.value = null
+  highlightedNodes.value.forEach(n => {
+    if (selectedNodes.value.includes(n)) {
+      applySelectedHighlight(n)
+    } else {
+      restoreMaterial(n)
+    }
+  })
+  highlightedNodes.value = []
 }
 
 function toggleNodeSelect(name) {
+  // 已配置为配件的节点不可再选
+  if (isConfigured(name)) return
+
   const idx = selectedNodes.value.indexOf(name)
   if (idx === -1) {
     selectedNodes.value.push(name)
+    applyEmissive(name, BLUE, 0.5)
   } else {
     selectedNodes.value.splice(idx, 1)
+    // 若当前正在 hover 中则保持橙色，否则恢复原始
+    if (highlightedNodes.value.includes(name)) {
+      applyEmissive(name, ORANGE, 0.6)
+    } else {
+      restoreMaterial(name)
+    }
   }
 }
 
 function addAccessory() {
   const id = newAccessoryId.value.trim()
   if (!id || selectedNodes.value.length === 0) return
+  // 清除这些节点的 3D 蓝色高亮
+  selectedNodes.value.forEach(n => restoreMaterial(n))
   accessoryGroups.value[id] = [...selectedNodes.value]
   newAccessoryId.value = ''
   selectedNodes.value = []
 }
 
-function removeAccessory(id) {
-  delete accessoryGroups.value[id]
-  accessoryGroups.value = { ...accessoryGroups.value }
+async function disbandAccessory(id) {
+  try {
+    await ElMessageBox.confirm(`确定要打散配件「${id}」吗？打散后节点可重新分配。`, '打散配件', {
+      confirmButtonText: '打散',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+    delete accessoryGroups.value[id]
+    accessoryGroups.value = { ...accessoryGroups.value }
+  } catch {
+    // 用户取消
+  }
 }
 
 async function save() {
@@ -258,6 +325,7 @@ async function save() {
 
 function disposeThree() {
   if (animationId) cancelAnimationFrame(animationId)
+  if (resizeObserver) resizeObserver.disconnect()
   if (renderer) {
     renderer.dispose()
     renderer.domElement.remove()
@@ -266,6 +334,7 @@ function disposeThree() {
   originalMaterials.clear()
   nodeNames.value = []
   selectedNodes.value = []
+  highlightedNodes.value = []
 }
 
 onBeforeUnmount(disposeThree)
@@ -355,6 +424,20 @@ onBeforeUnmount(disposeThree)
   background: #409eff;
   border-color: #409eff;
   color: #fff;
+}
+
+.node-item.configured {
+  background: #f5f5f5;
+  border-color: #dcdfe6;
+  color: #c0c4cc;
+  cursor: not-allowed;
+}
+
+.node-item.configured:hover,
+.node-item.configured.highlighted {
+  border-color: #ff6600;
+  color: #ff6600;
+  background: #fff5f0;
 }
 
 .selected-nodes-preview {
