@@ -18,6 +18,9 @@
           <el-tab-pane label="配件配置" name="accessory">
             <AccessoryConfig />
           </el-tab-pane>
+          <el-tab-pane label="模型验收" name="modelqa">
+            <ModelQA />
+          </el-tab-pane>
           <!-- <el-tab-pane label="保存模板" name="save">
             <SaveTemplateForm />
           </el-tab-pane> -->
@@ -36,6 +39,7 @@ import AccessoryConfig from "./views/AccessoryConfig.vue";
 import TemplateZipUpload from "./views/TemplateZipUpload.vue";
 import UploadUVTemplates from "./views/UploadUVTemplates.vue";
 import SaveTemplateForm from "./views/SaveTemplateForm.vue";
+import ModelQA from "./views/ModelQA.vue";
 import List from "./views/List.vue";
 
 const STORAGE_KEY = "slm_active_tab";
