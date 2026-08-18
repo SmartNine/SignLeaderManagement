@@ -11,11 +11,13 @@ const ProductAsset = require('./productAsset')(sequelize);
 const PresetTemplate = require('./presetTemplate')(sequelize);
 const GlobalAsset = require('./globalAsset')(sequelize);
 const EditableNode = require('./editableNode')(sequelize);
+const LayerPresetTemplate = require('./layerPresetTemplate')(sequelize);
 
 module.exports = {
   sequelize,
   ProductAsset,
   PresetTemplate,
   GlobalAsset,
-  EditableNode
+  EditableNode,
+  LayerPresetTemplate
 };

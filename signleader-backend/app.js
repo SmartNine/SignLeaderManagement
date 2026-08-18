@@ -9,6 +9,7 @@ const zipUploadRoutes = require('./routes/zipUploadRoutes');
 const editableNodeRoutes = require('./routes/editableNodeRoutes');
 const templateRoutes = require('./routes/templateRoutes');
 const accessoryRoutes = require('./routes/accessoryRoutes');
+const layerPresetTemplateRoutes = require('./routes/layerPresetTemplateRoutes');
 
 const app = express();
 app.use(cors());
@@ -20,6 +21,7 @@ app.use('/zip', zipUploadRoutes);
 app.use('/nodes', editableNodeRoutes);
 app.use('/templates', templateRoutes);
 app.use('/accessories', accessoryRoutes);
+app.use('/layer-preset-templates', layerPresetTemplateRoutes);
 
 sequelize.sync().then(() => {
   console.log('✅ 数据库连接成功，模型同步完成');
