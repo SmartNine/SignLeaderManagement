@@ -10,6 +10,7 @@ const editableNodeRoutes = require('./routes/editableNodeRoutes');
 const templateRoutes = require('./routes/templateRoutes');
 const accessoryRoutes = require('./routes/accessoryRoutes');
 const layerPresetTemplateRoutes = require('./routes/layerPresetTemplateRoutes');
+const textPresetRoutes = require('./routes/textPresetRoutes');
 
 const app = express();
 app.use(cors());
@@ -22,6 +23,7 @@ app.use('/nodes', editableNodeRoutes);
 app.use('/templates', templateRoutes);
 app.use('/accessories', accessoryRoutes);
 app.use('/layer-preset-templates', layerPresetTemplateRoutes);
+app.use('/text-presets', textPresetRoutes);
 
 sequelize.sync().then(() => {
   console.log('✅ 数据库连接成功，模型同步完成');

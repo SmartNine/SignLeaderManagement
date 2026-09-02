@@ -12,6 +12,7 @@ const PresetTemplate = require('./presetTemplate')(sequelize);
 const GlobalAsset = require('./globalAsset')(sequelize);
 const EditableNode = require('./editableNode')(sequelize);
 const LayerPresetTemplate = require('./layerPresetTemplate')(sequelize);
+const TextPreset = require('./textPreset')(sequelize);
 
 module.exports = {
   sequelize,
@@ -19,5 +20,6 @@ module.exports = {
   PresetTemplate,
   GlobalAsset,
   EditableNode,
-  LayerPresetTemplate
+  LayerPresetTemplate,
+  TextPreset
 };

@@ -45,12 +45,12 @@ router.get("/uv-templates", async (req, res) => {
         pa.name as asset_name
       FROM editable_nodes en
       LEFT JOIN product_assets pa ON en.asset_id = pa.id
-      ${sku ? "WHERE pa.sku LIKE ?" : ""}
+      ${sku ? "WHERE pa.sku = ?" : ""}
       ORDER BY en.created_at DESC
     `;
 
     const results = await sequelize.query(query, {
-      replacements: sku ? [`%${sku}%`] : [],
+      replacements: sku ? [sku] : [],
       type: sequelize.QueryTypes.SELECT,
     });
 

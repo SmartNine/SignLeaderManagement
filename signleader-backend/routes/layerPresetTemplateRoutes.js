@@ -7,8 +7,24 @@ const { v4: uuidv4 } = require("uuid");
 const { LayerPresetTemplate, EditableNode } = require("../models");
 const ossClient = require("../services/ossClient");
 const rewriteSvgAssets = require("../utils/svgAssetRewrite");
+const { putTemporaryUpload } = require("../utils/ossUpload");
 
 const upload = multer({ dest: "uploads/", limits: { fileSize: 50 * 1024 * 1024 } }); // 50MB
+const VALID_ROLES = new Set(["editable_text", "fixed_background_image", "replaceable_image", "decoration", "colorable"]);
+
+function validateLayerObjects(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "layer_objects 必须是对象";
+  if (!Number.isFinite(value.canvasWidth) || value.canvasWidth <= 0 || !Number.isFinite(value.canvasHeight) || value.canvasHeight <= 0) {
+    return "layer_objects 画布尺寸无效";
+  }
+  if (!Array.isArray(value.objects) || value.objects.length === 0) return "layer_objects.objects 至少需要一个对象";
+  for (const [index, object] of value.objects.entries()) {
+    if (!object || typeof object !== "object" || Array.isArray(object)) return `第 ${index + 1} 个图层对象无效`;
+    if (typeof object.type !== "string" || !object.type) return `第 ${index + 1} 个图层缺少 type`;
+    if (!VALID_ROLES.has(object.role)) return `第 ${index + 1} 个图层 role 无效`;
+  }
+  return null;
+}
 
 // POST /layer-preset-templates/upload-source
 // 上传模板源文件：单个 .svg（自包含，无外链图片）或 .zip（svg + 引用的位图打包）
@@ -58,15 +74,11 @@ router.post("/upload-preview", upload.single("file"), async (req, res) => {
     const ossKey = `layer-preset-templates/${node_id || "misc"}/preview/${uuidv4()}${path.extname(
       req.file.originalname
     )}`;
-    const result = await ossClient.put(ossKey, req.file.path);
+    const result = await putTemporaryUpload(ossKey, req.file);
     res.json({ success: true, preview_url: result.url });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
-  } finally {
-    if (req.file) {
-      await fs.unlink(req.file.path).catch(() => {});
-    }
   }
 });
 
@@ -107,6 +119,8 @@ router.post("/", async (req, res) => {
     if (!node_id || !name || !layer_objects) {
       return res.status(400).json({ message: "缺少 node_id / name / layer_objects" });
     }
+    const validationError = validateLayerObjects(layer_objects);
+    if (validationError) return res.status(400).json({ message: validationError });
     const template = await LayerPresetTemplate.create({
       node_id,
       name,
@@ -130,6 +144,10 @@ router.put("/:id", async (req, res) => {
     if (!template) return res.status(404).json({ message: "模板不存在" });
 
     const { name, preview_url, layer_objects, slot_manifest, sort_order } = req.body;
+    if (layer_objects !== undefined) {
+      const validationError = validateLayerObjects(layer_objects);
+      if (validationError) return res.status(400).json({ message: validationError });
+    }
     const updates = {};
     if (name !== undefined) updates.name = name;
     if (preview_url !== undefined) updates.preview_url = preview_url;

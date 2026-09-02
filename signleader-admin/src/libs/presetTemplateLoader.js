@@ -21,11 +21,18 @@ function extractTextLinesFromSvg(svgText) {
   const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml')
   const textEls = Array.from(doc.getElementsByTagName('text'))
   return textEls.map((textEl) => {
-    const tspans = Array.from(textEl.getElementsByTagName('tspan'))
-    if (tspans.length === 0) {
-      return (textEl.textContent || '').trim()
+    let hidden = false
+    for (let el = textEl; el; el = el.parentElement) {
+      const style = (el.getAttribute?.('style') || '').replace(/\s/g, '').toLowerCase()
+      if ((el.getAttribute?.('display') || '').toLowerCase() === 'none' ||
+          (el.getAttribute?.('visibility') || '').toLowerCase() === 'hidden' ||
+          style.includes('display:none') || style.includes('visibility:hidden')) hidden = true
     }
-    return tspans.map((t) => t.textContent || '').join('\n')
+    const tspans = Array.from(textEl.getElementsByTagName('tspan'))
+    const rebuiltText = tspans.length === 0
+      ? (textEl.textContent || '').trim()
+      : tspans.map((t) => t.textContent || '').join('\n')
+    return { rebuiltText, matchText: (textEl.textContent || '').replace(/\s+/g, ''), hidden }
   })
 }
 
@@ -92,7 +99,7 @@ export function loadPresetTemplateSvg(url) {
       .then((res) => res.text())
       .then((svgText) => {
         const textLines = extractTextLinesFromSvg(svgText)
-        let textCursor = 0
+        const usedTextIndexes = new Set()
 
         fabric.loadSVGFromURL(url, (objects, options) => {
           if (!objects || objects.length === 0) {
@@ -102,10 +109,14 @@ export function loadPresetTemplateSvg(url) {
 
           objects.forEach((obj) => {
             if (['text', 'i-text', 'textbox'].includes(obj.type)) {
-              const rebuiltText = textLines[textCursor]
-              textCursor += 1
-              if (rebuiltText !== undefined && rebuiltText !== obj.text) {
-                obj.set({ text: rebuiltText })
+              const objectText = String(obj.text || '').replace(/\s+/g, '')
+              const objectHidden = obj.visible === false
+              let sourceIndex = textLines.findIndex((item, index) => !usedTextIndexes.has(index) && item.hidden === objectHidden && item.matchText === objectText)
+              if (sourceIndex < 0) sourceIndex = textLines.findIndex((item, index) => !usedTextIndexes.has(index) && item.hidden === objectHidden)
+              if (sourceIndex >= 0) {
+                usedTextIndexes.add(sourceIndex)
+                const rebuiltText = textLines[sourceIndex].rebuiltText
+                if (rebuiltText !== obj.text) obj.set({ text: rebuiltText })
               }
             }
           })

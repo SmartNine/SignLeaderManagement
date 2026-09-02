@@ -138,6 +138,13 @@ const noEditableTextDetected = computed(() =>
   objectEntries.value.every((e) => e.role !== 'editable_text')
 )
 
+async function readArrayResponse(res, fallbackMessage) {
+  const data = await res.json()
+  if (!res.ok) throw new Error((data && !Array.isArray(data) && data.message) || fallbackMessage)
+  if (!Array.isArray(data)) throw new Error(`${fallbackMessage}：响应格式错误`)
+  return data
+}
+
 async function loadNodes() {
   if (!sku.value.trim()) return
   loadingNodes.value = true
@@ -149,10 +156,13 @@ async function loadNodes() {
   resetEditor()
   try {
     const res = await fetch(`/api/query/uv-templates?sku=${encodeURIComponent(sku.value.trim())}`)
-    nodes.value = await res.json()
+    nodes.value = await readArrayResponse(res, '查询编辑面失败')
     if (nodes.value.length === 0) {
       ElMessage.warning('未找到该 SKU 的编辑面（需先在「上传 UV 模板」里建好编辑面）')
     }
+  } catch (err) {
+    nodes.value = []
+    ElMessage.error(err.message)
   } finally {
     loadingNodes.value = false
   }
@@ -164,8 +174,13 @@ async function onNodeChange() {
 }
 
 async function loadTemplates() {
-  const res = await fetch(`/api/layer-preset-templates/by-node/${selectedNodeId.value}`)
-  templates.value = await res.json()
+  try {
+    const res = await fetch(`/api/layer-preset-templates/by-node/${selectedNodeId.value}`)
+    templates.value = await readArrayResponse(res, '加载模板失败')
+  } catch (err) {
+    templates.value = []
+    ElMessage.error(err.message)
+  }
 }
 
 // 跟后端 PATCH /:id/status 的强制校验保持一致的前端提示——真正拦截在后端，

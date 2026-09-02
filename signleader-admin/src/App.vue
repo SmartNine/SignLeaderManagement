@@ -21,6 +21,9 @@
           <el-tab-pane label="模型验收" name="modelqa">
             <ModelQA />
           </el-tab-pane>
+          <el-tab-pane label="预设字体" name="text-presets">
+            <TextPresetManagement />
+          </el-tab-pane>
           <el-tab-pane label="预置模板" name="presettemplate">
             <PresetTemplateReview />
           </el-tab-pane>
@@ -43,6 +46,7 @@ import TemplateZipUpload from "./views/TemplateZipUpload.vue";
 import UploadUVTemplates from "./views/UploadUVTemplates.vue";
 import SaveTemplateForm from "./views/SaveTemplateForm.vue";
 import ModelQA from "./views/ModelQA.vue";
+import TextPresetManagement from "./views/TextPresetManagement.vue";
 import PresetTemplateReview from "./views/PresetTemplateReview.vue";
 import List from "./views/List.vue";
 
