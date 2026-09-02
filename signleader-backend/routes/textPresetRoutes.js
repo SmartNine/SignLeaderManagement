@@ -12,8 +12,7 @@ const upload = multer({
   limits: {fileSize: 5 * 1024 * 1024},
   fileFilter: (_req, file, callback) => callback(null, ['image/png', 'image/jpeg', 'image/webp'].includes(file.mimetype)),
 })
-// 功能一分支只开放 basic；stage2 再扩展特效类型。
-const VALID_TYPES = new Set(['basic'])
+const VALID_TYPES = new Set(['basic', 'curve', 'shadow', 'outline', 'glow'])
 const VALID_STATUSES = new Set(['draft', 'active', 'archived'])
 const isNumber = (value) => typeof value === 'number' && Number.isFinite(value)
 const isPercent = (value) => isNumber(value) && value >= 0 && value <= 100

@@ -102,8 +102,13 @@
 import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue'
 import {ElMessage} from 'element-plus'
 
-// 功能一分支只开放 basic；stage2 再扩展特效类型。
-const types = [{value: 'basic', label: '基础文字'}]
+const types = [
+  {value: 'basic', label: '基础文字'},
+  {value: 'curve', label: '曲线'},
+  {value: 'shadow', label: '阴影'},
+  {value: 'outline', label: '描边'},
+  {value: 'glow', label: '发光'},
+]
 const curveValues = {strongUp: 100, mildUp: 40, flat: 0, mildDown: -40, strongDown: -100}
 const curveOptions = [{value: 'strongUp', label: '强上弯'}, {value: 'mildUp', label: '轻上弯'}, {value: 'flat', label: '直线'}, {value: 'mildDown', label: '轻下弯'}, {value: 'strongDown', label: '强下弯'}]
 const presets = ref([])
